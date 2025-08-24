@@ -767,13 +767,13 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
       // For specific items within a section (like individual projects, experience entries, etc.)
       sectionEnhancements = enhancements.filter(e => 
         e.section === sectionName && 
-        e.original === itemContent
+        (e.original === itemContent || e.projectIndex === itemIndex)
       );
     } else {
       // For section-level enhancements (like adding new skills, github, etc.)
       sectionEnhancements = enhancements.filter(e => 
         e.section === sectionName && 
-        (!e.original || e.type === 'add')
+        (!e.original || e.type === 'add' || e.isNewSection)
       );
     }
     
@@ -801,12 +801,57 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                   isRejected ? 'text-gray-600' :
                   'text-blue-900'
                 }`}>
-                  {enhancement.type === 'add' ? '✨ Suggested Addition:' : '🔧 Suggested Improvement:'}
+                  {enhancement.isNewSection ? '📝 New Section:' : 
+                   enhancement.type === 'add' ? '✨ Suggested Addition:' : 
+                   '🔧 Suggested Improvement:'}
                   {isAccepted && ' ✅ Accepted'}
                   {isRejected && ' ❌ Rejected'}
                 </div>
                 
-                {enhancement.isEditing ? (
+                {enhancement.isNewSection && isAccepted ? (
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-700 mb-2">Add entries to this section:</div>
+                    {enhancement.sectionContent?.map((entry, index) => (
+                      <div key={index} className="flex items-center space-x-2 bg-white p-2 rounded border">
+                        <span className="flex-1 text-sm">{entry}</span>
+                        <button
+                          onClick={() => removeNewSectionEntry(enhancement.id, index)}
+                          className="text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        placeholder={`Add ${enhancement.section} entry...`}
+                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            const input = e.target as HTMLInputElement;
+                            if (input.value.trim()) {
+                              addNewSectionEntry(enhancement.id, input.value.trim());
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={(e) => {
+                          const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
+                          if (input.value.trim()) {
+                            addNewSectionEntry(enhancement.id, input.value.trim());
+                            input.value = '';
+                          }
+                        }}
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                ) : enhancement.isEditing ? (
                   <div className="space-y-2">
                     <textarea
                       value={enhancement.editValue || enhancement.enhanced}
@@ -848,7 +893,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
               </div>
               
               <div className="flex items-center space-x-2">
-                {isPending && !enhancement.isEditing && (
+                {isPending && !enhancement.isEditing && !enhancement.isNewSection && (
                   <>
                     <button
                       onClick={() => acceptEnhancement(enhancement.id)}
@@ -870,6 +915,25 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                     >
                       <Edit3 className="w-3 h-3" />
                       <span>Edit</span>
+                    </button>
+                  </>
+                )}
+
+                {isPending && enhancement.isNewSection && (
+                  <>
+                    <button
+                      onClick={() => acceptEnhancement(enhancement.id)}
+                      className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>Enable Section</span>
+                    </button>
+                    <button
+                      onClick={() => rejectEnhancement(enhancement.id)}
+                      className="flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors"
+                    >
+                      <XCircle className="w-3 h-3" />
+                      <span>Skip Section</span>
                     </button>
                   </>
                 )}
