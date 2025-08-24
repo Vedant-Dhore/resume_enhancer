@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Wand2, User, Mail, Phone, Linkedin, Github, GraduationCap, Briefcase, Code, Trophy, FileText, Undo, Check, Edit3, XCircle } from 'lucide-react';
+import { X, Wand2, User, Mail, Phone, Linkedin, Github, GraduationCap, Briefcase, Code, Trophy, FileText, Undo, Check, Edit3, XCircle, Save } from 'lucide-react';
 
 interface Candidate {
   id: string;
@@ -29,15 +29,16 @@ interface Enhancement {
   original?: string;
   enhanced: string;
   reason: string;
-  applied: boolean;
+  status: 'pending' | 'accepted' | 'rejected';
+  isEditing?: boolean;
+  editValue?: string;
 }
 
 const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onClose }) => {
   const [originalResume, setOriginalResume] = useState<any>(null);
   const [enhancedResume, setEnhancedResume] = useState<any>(null);
   const [enhancements, setEnhancements] = useState<Enhancement[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const [currentFitmentScore, setCurrentFitmentScore] = useState(0);
 
   // Get resume data for the candidate
   const getResumeData = () => {
@@ -183,169 +184,274 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     const resumeData = getResumeData();
     setOriginalResume(resumeData);
     setEnhancedResume({ ...resumeData });
+    setCurrentFitmentScore(candidate?.fitmentScore || 65);
+
+    // Auto-load enhancements (simulating backend data)
+    const mockEnhancements: Enhancement[] = [
+      {
+        id: '1',
+        section: 'github',
+        type: 'add',
+        enhanced: 'github.com/janhavi-dev',
+        reason: 'Adding GitHub profile to showcase coding projects and contributions',
+        status: 'pending'
+      },
+      {
+        id: '2',
+        section: 'summary',
+        type: 'improve',
+        original: resumeData?.summary,
+        enhanced: 'Passionate Computer Science student specializing in full-stack web development with hands-on experience in Java, React, and SQL. Proven track record of building scalable applications and delivering user-centric solutions.',
+        reason: 'Enhanced to highlight specific technologies and demonstrate impact',
+        status: 'pending'
+      },
+      {
+        id: '3',
+        section: 'skills',
+        type: 'add',
+        enhanced: 'Git',
+        reason: 'Adding version control skill essential for software development roles',
+        status: 'pending'
+      },
+      {
+        id: '4',
+        section: 'experience',
+        type: 'improve',
+        original: 'Developed a Blood Bank Management System using Java and MySQL',
+        enhanced: 'Architected and developed a comprehensive Blood Bank Management System using Java and MySQL, serving 500+ daily users with 99.9% uptime and reducing manual processing time by 60%',
+        reason: 'Added quantifiable metrics and impact to demonstrate value',
+        status: 'pending'
+      }
+    ];
+
+    setEnhancements(mockEnhancements);
   }, [candidate]);
 
-  const generateEnhancements = () => {
-    setIsGenerating(true);
-    
-    // Simulate AI processing
-    setTimeout(() => {
-      const mockEnhancements: Enhancement[] = [
-        {
-          id: '1',
-          section: 'github',
-          type: 'add',
-          enhanced: 'github.com/janhavi-dev',
-          reason: 'Adding GitHub profile to showcase coding projects and contributions',
-          applied: false
-        },
-        {
-          id: '2',
-          section: 'summary',
-          type: 'improve',
-          original: originalResume?.summary,
-          enhanced: 'Passionate Computer Science student specializing in full-stack web development with hands-on experience in Java, React, and SQL. Proven track record of building scalable applications and delivering user-centric solutions.',
-          reason: 'Enhanced to highlight specific technologies and demonstrate impact',
-          applied: false
-        },
-        {
-          id: '3',
-          section: 'skills',
-          type: 'add',
-          enhanced: 'Git',
-          reason: 'Adding version control skill essential for software development roles',
-          applied: false
-        },
-        {
-          id: '4',
-          section: 'experience',
-          type: 'improve',
-          original: 'Developed a Blood Bank Management System using Java and MySQL',
-          enhanced: 'Architected and developed a comprehensive Blood Bank Management System using Java and MySQL, serving 500+ daily users with 99.9% uptime and reducing manual processing time by 60%',
-          reason: 'Added quantifiable metrics and impact to demonstrate value',
-          applied: false
-        }
-      ];
+  const calculateFitmentScore = () => {
+    const baseScore = candidate?.fitmentScore || 65;
+    const acceptedEnhancements = enhancements.filter(e => e.status === 'accepted').length;
+    return Math.min(95, baseScore + (acceptedEnhancements * 7));
+  };
 
-      setEnhancements(mockEnhancements);
-      setIsGenerating(false);
-      setHasGenerated(true);
-    }, 2000);
+  const updateFitmentScore = () => {
+    const newScore = calculateFitmentScore();
+    setCurrentFitmentScore(newScore);
   };
 
   const acceptEnhancement = (enhancementId: string) => {
-    const enhancement = enhancements.find(e => e.id === enhancementId);
-    if (!enhancement) return;
-
-    const updatedEnhanced = { ...enhancedResume };
-    
-    switch (enhancement.section) {
-      case 'github':
-        updatedEnhanced.github = enhancement.enhanced;
-        break;
-      case 'summary':
-        updatedEnhanced.summary = enhancement.enhanced;
-        break;
-      case 'skills':
-        if (enhancement.type === 'add') {
-          updatedEnhanced.skills = [...updatedEnhanced.skills, enhancement.enhanced];
-        }
-        break;
-      case 'experience':
-        if (enhancement.type === 'improve' && enhancement.original) {
-          const index = updatedEnhanced.experience.findIndex((exp: string) => exp === enhancement.original);
-          if (index !== -1) {
-            updatedEnhanced.experience[index] = enhancement.enhanced;
-          }
-        }
-        break;
-    }
-
-    setEnhancedResume(updatedEnhanced);
     setEnhancements(prev => prev.map(e => 
-      e.id === enhancementId ? { ...e, applied: true } : e
+      e.id === enhancementId ? { ...e, status: 'accepted' as const } : e
     ));
+    updateFitmentScore();
   };
 
   const rejectEnhancement = (enhancementId: string) => {
-    setEnhancements(prev => prev.filter(e => e.id !== enhancementId));
+    setEnhancements(prev => prev.map(e => 
+      e.id === enhancementId ? { ...e, status: 'rejected' as const } : e
+    ));
   };
 
-  const editEnhancement = (enhancementId: string, newValue: string) => {
+  const undoEnhancement = (enhancementId: string) => {
     setEnhancements(prev => prev.map(e => 
-      e.id === enhancementId ? { ...e, enhanced: newValue } : e
+      e.id === enhancementId ? { ...e, status: 'pending' as const, isEditing: false } : e
+    ));
+    updateFitmentScore();
+  };
+
+  const startEditing = (enhancementId: string) => {
+    const enhancement = enhancements.find(e => e.id === enhancementId);
+    if (!enhancement) return;
+    
+    setEnhancements(prev => prev.map(e => 
+      e.id === enhancementId ? { 
+        ...e, 
+        isEditing: true, 
+        editValue: e.enhanced 
+      } : e
+    ));
+  };
+
+  const saveEdit = (enhancementId: string) => {
+    setEnhancements(prev => prev.map(e => 
+      e.id === enhancementId ? { 
+        ...e, 
+        enhanced: e.editValue || e.enhanced,
+        isEditing: false,
+        status: 'pending' as const
+      } : e
+    ));
+  };
+
+  const updateEditValue = (enhancementId: string, value: string) => {
+    setEnhancements(prev => prev.map(e => 
+      e.id === enhancementId ? { ...e, editValue: value } : e
     ));
   };
 
   const undoAllEnhancements = () => {
-    setEnhancedResume({ ...originalResume });
-    setEnhancements(prev => prev.map(e => ({ ...e, applied: false })));
+    setEnhancements(prev => prev.map(e => ({ 
+      ...e, 
+      status: 'pending' as const, 
+      isEditing: false 
+    })));
+    setCurrentFitmentScore(candidate?.fitmentScore || 65);
   };
 
-  const calculateFitmentScore = () => {
-    const baseScore = candidate?.fitmentScore || 65;
-    const appliedEnhancements = enhancements.filter(e => e.applied).length;
-    return Math.min(95, baseScore + (appliedEnhancements * 5));
+  const applyAcceptedEnhancements = () => {
+    const updatedResume = { ...originalResume };
+    
+    enhancements.forEach(enhancement => {
+      if (enhancement.status === 'accepted') {
+        switch (enhancement.section) {
+          case 'github':
+            updatedResume.github = enhancement.enhanced;
+            break;
+          case 'summary':
+            updatedResume.summary = enhancement.enhanced;
+            break;
+          case 'skills':
+            if (enhancement.type === 'add') {
+              updatedResume.skills = [...updatedResume.skills, enhancement.enhanced];
+            }
+            break;
+          case 'experience':
+            if (enhancement.type === 'improve' && enhancement.original) {
+              const index = updatedResume.experience.findIndex((exp: string) => exp === enhancement.original);
+              if (index !== -1) {
+                updatedResume.experience[index] = enhancement.enhanced;
+              }
+            }
+            break;
+        }
+      }
+    });
+
+    return updatedResume;
   };
 
   const handleSave = () => {
-    const newScore = calculateFitmentScore();
+    const finalResume = applyAcceptedEnhancements();
+    const finalScore = calculateFitmentScore();
+    
     if (onSave && candidate) {
-      onSave(candidate.id, newScore, enhancedResume);
+      onSave(candidate.id, finalScore, finalResume);
     }
     onClose();
   };
 
   const renderEnhancementInline = (sectionName: string) => {
-    const sectionEnhancements = enhancements.filter(e => e.section === sectionName && !e.applied);
+    const sectionEnhancements = enhancements.filter(e => e.section === sectionName);
     
     if (sectionEnhancements.length === 0) return null;
 
     return (
-      <div className="mt-3 space-y-2">
-        {sectionEnhancements.map(enhancement => (
-          <div key={enhancement.id} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1">
-                <div className="text-sm font-medium text-blue-900 mb-1">
-                  {enhancement.type === 'add' ? 'Suggested Addition:' : 'Suggested Improvement:'}
+      <div className="mt-4 space-y-3">
+        {sectionEnhancements.map(enhancement => {
+          const isPending = enhancement.status === 'pending';
+          const isAccepted = enhancement.status === 'accepted';
+          const isRejected = enhancement.status === 'rejected';
+          
+          return (
+            <div 
+              key={enhancement.id} 
+              className={`border rounded-lg p-4 ${
+                isAccepted ? 'bg-green-50 border-green-200' :
+                isRejected ? 'bg-gray-50 border-gray-300' :
+                'bg-blue-50 border-blue-200'
+              }`}
+            >
+              <div className="mb-3">
+                <div className={`text-sm font-medium mb-2 ${
+                  isAccepted ? 'text-green-900' :
+                  isRejected ? 'text-gray-600' :
+                  'text-blue-900'
+                }`}>
+                  {enhancement.type === 'add' ? '✨ Suggested Addition:' : '🔧 Suggested Improvement:'}
+                  {isAccepted && ' ✅ Accepted'}
+                  {isRejected && ' ❌ Rejected'}
                 </div>
-                <div className="text-sm text-blue-800 bg-white p-2 rounded border">
-                  {enhancement.enhanced}
-                </div>
-                <div className="text-xs text-blue-600 mt-1 italic">
-                  {enhancement.reason}
+                
+                {enhancement.isEditing ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={enhancement.editValue || enhancement.enhanced}
+                      onChange={(e) => updateEditValue(enhancement.id, e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                      rows={3}
+                    />
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => saveEdit(enhancement.id)}
+                        className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                      >
+                        <Save className="w-3 h-3" />
+                        <span>Save Edit</span>
+                      </button>
+                      <button
+                        onClick={() => setEnhancements(prev => prev.map(e => 
+                          e.id === enhancement.id ? { ...e, isEditing: false } : e
+                        ))}
+                        className="text-xs text-gray-600 hover:text-gray-800"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`text-sm p-3 rounded border bg-white ${
+                    isRejected ? 'line-through text-gray-500' : 'text-gray-800'
+                  }`}>
+                    {enhancement.enhanced}
+                  </div>
+                )}
+                
+                <div className={`text-xs mt-2 italic ${
+                  isRejected ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  💡 {enhancement.reason}
                 </div>
               </div>
+              
+              <div className="flex items-center space-x-2">
+                {isPending && !enhancement.isEditing && (
+                  <>
+                    <button
+                      onClick={() => acceptEnhancement(enhancement.id)}
+                      className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>Accept</span>
+                    </button>
+                    <button
+                      onClick={() => rejectEnhancement(enhancement.id)}
+                      className="flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors"
+                    >
+                      <XCircle className="w-3 h-3" />
+                      <span>Reject</span>
+                    </button>
+                    <button
+                      onClick={() => startEditing(enhancement.id)}
+                      className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Edit</span>
+                    </button>
+                  </>
+                )}
+                
+                {(isAccepted || isRejected) && (
+                  <button
+                    onClick={() => undoEnhancement(enhancement.id)}
+                    className="flex items-center space-x-1 bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors"
+                  >
+                    <Undo className="w-3 h-3" />
+                    <span>Undo</span>
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => acceptEnhancement(enhancement.id)}
-                className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
-              >
-                <Check className="w-3 h-3" />
-                <span>Accept</span>
-              </button>
-              <button
-                onClick={() => rejectEnhancement(enhancement.id)}
-                className="flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors"
-              >
-                <XCircle className="w-3 h-3" />
-                <span>Reject</span>
-              </button>
-              <button
-                onClick={() => {
-                  const newValue = prompt('Edit enhancement:', enhancement.enhanced);
-                  if (newValue) editEnhancement(enhancement.id, newValue);
-                }}
-                className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
-              >
-                <Edit3 className="w-3 h-3" />
-                <span>Edit</span>
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
@@ -377,7 +483,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <div className="text-sm text-gray-600">Current Fitment Score</div>
-              <div className="text-2xl font-bold text-purple-600">{calculateFitmentScore()}%</div>
+              <div className="text-2xl font-bold text-purple-600">{currentFitmentScore}%</div>
             </div>
             <button
               onClick={onClose}
@@ -391,22 +497,9 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
         {/* Action Buttons */}
         <div className="p-6 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {!hasGenerated ? (
-                <button
-                  onClick={generateEnhancements}
-                  disabled={isGenerating}
-                  className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-sm disabled:opacity-50"
-                >
-                  <Wand2 className="w-4 h-4" />
-                  <span>{isGenerating ? 'Generating Enhancements...' : 'Generate AI Enhancements'}</span>
-                </button>
-              ) : (
-                <div className="flex items-center space-x-2 text-green-600">
-                  <Check className="w-5 h-5" />
-                  <span className="font-medium">Enhancements Generated</span>
-                </div>
-              )}
+            <div className="flex items-center space-x-2 text-green-600">
+              <Check className="w-5 h-5" />
+              <span className="font-medium">AI Enhancements Ready</span>
             </div>
             
             <div className="flex items-center space-x-3">
