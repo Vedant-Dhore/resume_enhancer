@@ -33,9 +33,6 @@ interface Enhancement {
   isEditing?: boolean;
   editValue?: string;
   skillSuggestions?: string[]; // For skills section with multiple suggestions
-  projectIndex?: number; // For project-specific enhancements
-  isNewSection?: boolean; // For entirely new sections
-  sectionContent?: string[]; // For new sections with multiple entries
 }
 
 const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onClose }) => {
@@ -195,85 +192,17 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
       const enhancements: Enhancement[] = [];
       let enhancementId = 1;
 
-      // Helper function to check if a URL is missing or empty
-      const isMissingLink = (link: string) => !link || link.trim() === '';
-
-      // Helper function to check if a project has hyperlinks
-      const hasProjectLinks = (project: string) => {
-        return project.includes('http') || project.includes('github.com') || project.includes('demo');
-      };
-
       // Personalized enhancements based on candidate ID and resume content
       switch (candidateId) {
         case '1': // Janhavi Sharma - missing GitHub, has Java/React/SQL
-          // Contact Info Enhancements
-          if (isMissingLink(resume.github)) {
-            enhancements.push({
-              id: String(enhancementId++),
-              section: 'github',
-              type: 'add',
-              enhanced: 'github.com/janhavi-dev',
-              reason: 'Adding GitHub profile to showcase your Blood Bank Management System and E-commerce projects',
-              status: 'pending'
-            });
-          }
-
-          // Project Hyperlinks
-          resume.projects.forEach((project: string, index: number) => {
-            if (!hasProjectLinks(project)) {
-              if (project.includes('Blood Bank Management System')) {
-                enhancements.push({
-                  id: String(enhancementId++),
-                  section: 'projects',
-                  type: 'improve',
-                  original: project,
-                  enhanced: project + ' | GitHub: github.com/janhavi-dev/blood-bank-system | Demo: bloodbank-demo.com',
-                  reason: 'Adding project links to showcase your work and provide easy access for recruiters',
-                  status: 'pending',
-                  projectIndex: index
-                });
-              } else if (project.includes('E-commerce Website')) {
-                enhancements.push({
-                  id: String(enhancementId++),
-                  section: 'projects',
-                  type: 'improve',
-                  original: project,
-                  enhanced: project + ' | GitHub: github.com/janhavi-dev/ecommerce-site | Live: ecommerce-demo.com',
-                  reason: 'Adding project links to demonstrate your frontend development skills',
-                  status: 'pending',
-                  projectIndex: index
-                });
-              }
-            }
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'github',
+            type: 'add',
+            enhanced: 'github.com/janhavi-dev',
+            reason: 'Adding GitHub profile to showcase your Blood Bank Management System and E-commerce projects',
+            status: 'pending'
           });
-
-          // Missing Sections
-          if (!resume.certifications) {
-            enhancements.push({
-              id: String(enhancementId++),
-              section: 'certifications',
-              type: 'add',
-              enhanced: 'Add Certifications',
-              reason: 'Showcase your technical certifications to strengthen your profile',
-              status: 'pending',
-              isNewSection: true,
-              sectionContent: []
-            });
-          }
-
-          if (!resume.volunteering) {
-            enhancements.push({
-              id: String(enhancementId++),
-              section: 'volunteering',
-              type: 'add',
-              enhanced: 'Add Volunteering Experience',
-              reason: 'Highlight your community involvement and soft skills',
-              status: 'pending',
-              isNewSection: true,
-              sectionContent: []
-            });
-          }
-
           enhancements.push({
             id: String(enhancementId++),
             section: 'summary',
@@ -303,39 +232,6 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
           break;
 
         case '2': // Aarya Ranpise - has Python/Django, missing React
-          // Contact Info - already has GitHub, check LinkedIn
-          // Project Hyperlinks
-          resume.projects.forEach((project: string, index: number) => {
-            if (!hasProjectLinks(project)) {
-              if (project.includes('Library Management System')) {
-                enhancements.push({
-                  id: String(enhancementId++),
-                  section: 'projects',
-                  type: 'improve',
-                  original: project,
-                  enhanced: project + ' | GitHub: github.com/aarya/library-management | Demo: library-demo.com',
-                  reason: 'Adding project links to showcase your Django development skills',
-                  status: 'pending',
-                  projectIndex: index
-                });
-              }
-            }
-          });
-
-          // Missing Sections
-          if (!resume.certifications) {
-            enhancements.push({
-              id: String(enhancementId++),
-              section: 'certifications',
-              type: 'add',
-              enhanced: 'Add Certifications',
-              reason: 'Display your IBM Java certification and other technical credentials',
-              status: 'pending',
-              isNewSection: true,
-              sectionContent: []
-            });
-          }
-
           enhancements.push({
             id: String(enhancementId++),
             section: 'summary',
@@ -394,36 +290,14 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
           break;
 
         case '4': // Rahul Singh - has Node.js/MongoDB, missing SQL
-          // Contact Info Enhancements
-          if (isMissingLink(resume.github)) {
-            enhancements.push({
-              id: String(enhancementId++),
-              section: 'github',
-              type: 'add',
-              enhanced: 'github.com/rahul-dev',
-              reason: 'Adding GitHub profile to showcase your Node.js and real-time chat application projects',
-              status: 'pending'
-            });
-          }
-
-          // Project Hyperlinks
-          resume.projects.forEach((project: string, index: number) => {
-            if (!hasProjectLinks(project)) {
-              if (project.includes('Chat Application')) {
-                enhancements.push({
-                  id: String(enhancementId++),
-                  section: 'projects',
-                  type: 'improve',
-                  original: project,
-                  enhanced: project + ' | GitHub: github.com/rahul-dev/chat-app | Live Demo: chat-demo.com',
-                  reason: 'Adding project links to demonstrate your real-time application development skills',
-                  status: 'pending',
-                  projectIndex: index
-                });
-              }
-            }
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'github',
+            type: 'add',
+            enhanced: 'github.com/rahul-dev',
+            reason: 'Adding GitHub profile to showcase your Node.js and real-time chat application projects',
+            status: 'pending'
           });
-
           enhancements.push({
             id: String(enhancementId++),
             section: 'summary',
@@ -482,50 +356,14 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
           break;
 
         case '6': // Vikram Kumar - has Node.js/MongoDB, missing SQL
-          // Contact Info Enhancements
-          if (isMissingLink(resume.github)) {
-            enhancements.push({
-              id: String(enhancementId++),
-              section: 'github',
-              type: 'add',
-              enhanced: 'github.com/vikram-dev',
-              reason: 'Adding GitHub profile to showcase your Node.js chat application and e-commerce projects',
-              status: 'pending'
-            });
-          }
-
-          // Project Hyperlinks for hackathon winner
-          resume.projects.forEach((project: string, index: number) => {
-            if (!hasProjectLinks(project)) {
-              if (project.includes('Chat Application')) {
-                enhancements.push({
-                  id: String(enhancementId++),
-                  section: 'projects',
-                  type: 'improve',
-                  original: project,
-                  enhanced: project + ' | GitHub: github.com/vikram-dev/award-winning-chat | Demo: vikram-chat.com',
-                  reason: 'Showcase your award-winning project with accessible links for recruiters',
-                  status: 'pending',
-                  projectIndex: index
-                });
-              }
-            }
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'github',
+            type: 'add',
+            enhanced: 'github.com/vikram-dev',
+            reason: 'Adding GitHub profile to showcase your Node.js chat application and e-commerce projects',
+            status: 'pending'
           });
-
-          // Missing Sections - especially important for hackathon winner
-          if (!resume.certifications) {
-            enhancements.push({
-              id: String(enhancementId++),
-              section: 'certifications',
-              type: 'add',
-              enhanced: 'Add Certifications',
-              reason: 'Display your Coursera JavaScript certification and other credentials',
-              status: 'pending',
-              isNewSection: true,
-              sectionContent: []
-            });
-          }
-
           enhancements.push({
             id: String(enhancementId++),
             section: 'summary',
@@ -703,9 +541,6 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
           case 'github':
             updatedResume.github = enhancement.enhanced;
             break;
-          case 'linkedin':
-            updatedResume.linkedin = enhancement.enhanced;
-            break;
           case 'summary':
             updatedResume.summary = enhancement.enhanced;
             break;
@@ -715,32 +550,12 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
               updatedResume.skills = enhancedResume.skills;
             }
             break;
-          case 'projects':
-            if (enhancement.type === 'improve' && enhancement.original && enhancement.projectIndex !== undefined) {
-              updatedResume.projects[enhancement.projectIndex] = enhancement.enhanced;
-            }
-            break;
           case 'experience':
             if (enhancement.type === 'improve' && enhancement.original) {
               const index = updatedResume.experience.findIndex((exp: string) => exp === enhancement.original);
               if (index !== -1) {
                 updatedResume.experience[index] = enhancement.enhanced;
               }
-            }
-            break;
-          case 'certifications':
-            if (enhancement.isNewSection && enhancement.sectionContent) {
-              updatedResume.certifications = enhancement.sectionContent;
-            }
-            break;
-          case 'volunteering':
-            if (enhancement.isNewSection && enhancement.sectionContent) {
-              updatedResume.volunteering = enhancement.sectionContent;
-            }
-            break;
-          case 'research':
-            if (enhancement.isNewSection && enhancement.sectionContent) {
-              updatedResume.research = enhancement.sectionContent;
             }
             break;
         }
@@ -767,13 +582,13 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
       // For specific items within a section (like individual projects, experience entries, etc.)
       sectionEnhancements = enhancements.filter(e => 
         e.section === sectionName && 
-        (e.original === itemContent || e.projectIndex === itemIndex)
+        e.original === itemContent
       );
     } else {
       // For section-level enhancements (like adding new skills, github, etc.)
       sectionEnhancements = enhancements.filter(e => 
         e.section === sectionName && 
-        (!e.original || e.type === 'add' || e.isNewSection)
+        (!e.original || e.type === 'add')
       );
     }
     
@@ -801,57 +616,12 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                   isRejected ? 'text-gray-600' :
                   'text-blue-900'
                 }`}>
-                  {enhancement.isNewSection ? '📝 New Section:' : 
-                   enhancement.type === 'add' ? '✨ Suggested Addition:' : 
-                   '🔧 Suggested Improvement:'}
+                  {enhancement.type === 'add' ? '✨ Suggested Addition:' : '🔧 Suggested Improvement:'}
                   {isAccepted && ' ✅ Accepted'}
                   {isRejected && ' ❌ Rejected'}
                 </div>
                 
-                {enhancement.isNewSection && isAccepted ? (
-                  <div className="space-y-3">
-                    <div className="text-sm text-gray-700 mb-2">Add entries to this section:</div>
-                    {enhancement.sectionContent?.map((entry, index) => (
-                      <div key={index} className="flex items-center space-x-2 bg-white p-2 rounded border">
-                        <span className="flex-1 text-sm">{entry}</span>
-                        <button
-                          onClick={() => removeNewSectionEntry(enhancement.id, index)}
-                          className="text-red-600 hover:text-red-800 text-xs"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                    <div className="flex space-x-2">
-                      <input
-                        type="text"
-                        placeholder={`Add ${enhancement.section} entry...`}
-                        className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            const input = e.target as HTMLInputElement;
-                            if (input.value.trim()) {
-                              addNewSectionEntry(enhancement.id, input.value.trim());
-                              input.value = '';
-                            }
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={(e) => {
-                          const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
-                          if (input.value.trim()) {
-                            addNewSectionEntry(enhancement.id, input.value.trim());
-                            input.value = '';
-                          }
-                        }}
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-                      >
-                        Add
-                      </button>
-                    </div>
-                  </div>
-                ) : enhancement.isEditing ? (
+                {enhancement.isEditing ? (
                   <div className="space-y-2">
                     <textarea
                       value={enhancement.editValue || enhancement.enhanced}
@@ -893,7 +663,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
               </div>
               
               <div className="flex items-center space-x-2">
-                {isPending && !enhancement.isEditing && !enhancement.isNewSection && (
+                {isPending && !enhancement.isEditing && (
                   <>
                     <button
                       onClick={() => acceptEnhancement(enhancement.id)}
@@ -915,25 +685,6 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                     >
                       <Edit3 className="w-3 h-3" />
                       <span>Edit</span>
-                    </button>
-                  </>
-                )}
-
-                {isPending && enhancement.isNewSection && (
-                  <>
-                    <button
-                      onClick={() => acceptEnhancement(enhancement.id)}
-                      className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
-                    >
-                      <Check className="w-3 h-3" />
-                      <span>Enable Section</span>
-                    </button>
-                    <button
-                      onClick={() => rejectEnhancement(enhancement.id)}
-                      className="flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors"
-                    >
-                      <XCircle className="w-3 h-3" />
-                      <span>Skip Section</span>
                     </button>
                   </>
                 )}
