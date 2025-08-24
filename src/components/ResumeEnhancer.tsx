@@ -427,7 +427,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     setEnhancements(prev => prev.map(e => 
       e.id === enhancementId ? { ...e, status: 'accepted' as const } : e
     ));
-    updateFitmentScore();
+    setCurrentFitmentScore(prev => Math.min(95, prev + 3));
   };
 
   const rejectEnhancement = (enhancementId: string) => {
@@ -437,10 +437,13 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
   };
 
   const undoEnhancement = (enhancementId: string) => {
+    const enhancement = enhancements.find(e => e.id === enhancementId);
+    if (enhancement?.status === 'accepted') {
+      setCurrentFitmentScore(prev => Math.max(candidate?.fitmentScore || 65, prev - 3));
+    }
     setEnhancements(prev => prev.map(e => 
       e.id === enhancementId ? { ...e, status: 'pending' as const, isEditing: false } : e
     ));
-    updateFitmentScore();
   };
 
   const startEditing = (enhancementId: string) => {
@@ -524,8 +527,22 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     onClose();
   };
 
-  const renderEnhancementInline = (sectionName: string) => {
-    const sectionEnhancements = enhancements.filter(e => e.section === sectionName);
+  const renderEnhancementInline = (sectionName: string, itemIndex?: number, itemContent?: string) => {
+    let sectionEnhancements;
+    
+    if (itemIndex !== undefined && itemContent) {
+      // For specific items within a section (like individual projects, experience entries, etc.)
+      sectionEnhancements = enhancements.filter(e => 
+        e.section === sectionName && 
+        e.original === itemContent
+      );
+    } else {
+      // For section-level enhancements (like adding new skills, github, etc.)
+      sectionEnhancements = enhancements.filter(e => 
+        e.section === sectionName && 
+        (!e.original || e.type === 'add')
+      );
+    }
     
     if (sectionEnhancements.length === 0) return null;
 
@@ -889,10 +906,12 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                 </div>
                 <div className="space-y-2">
                   {enhancedResume.experience.map((exp: string, index: number) => (
-                    <p key={index} className="text-gray-700">• {exp}</p>
+                    <div key={index}>
+                      <p className="text-gray-700">• {exp}</p>
+                      {renderEnhancementInline('experience', index, exp)}
+                    </div>
                   ))}
                 </div>
-                {renderEnhancementInline('experience')}
               </div>
 
               {/* Projects */}
@@ -903,10 +922,12 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                 </div>
                 <div className="space-y-2">
                   {enhancedResume.projects.map((project: string, index: number) => (
-                    <p key={index} className="text-gray-700">• {project}</p>
+                    <div key={index}>
+                      <p className="text-gray-700">• {project}</p>
+                      {renderEnhancementInline('projects', index, project)}
+                    </div>
                   ))}
                 </div>
-                {renderEnhancementInline('projects')}
               </div>
 
               {/* Skills */}
@@ -917,9 +938,12 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {enhancedResume.skills.map((skill: string, index: number) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                      {skill}
-                    </span>
+                    <div key={index} className="flex flex-col">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                        {skill}
+                      </span>
+                      {renderEnhancementInline('skills', index, skill)}
+                    </div>
                   ))}
                 </div>
                 {renderEnhancementInline('skills')}
@@ -933,10 +957,12 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                 </div>
                 <div className="space-y-2">
                   {enhancedResume.achievements.map((achievement: string, index: number) => (
-                    <p key={index} className="text-gray-700">• {achievement}</p>
+                    <div key={index}>
+                      <p className="text-gray-700">• {achievement}</p>
+                      {renderEnhancementInline('achievements', index, achievement)}
+                    </div>
                   ))}
                 </div>
-                {renderEnhancementInline('achievements')}
               </div>
             </div>
           </div>
