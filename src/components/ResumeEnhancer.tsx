@@ -186,43 +186,228 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     setEnhancedResume({ ...resumeData });
     setCurrentFitmentScore(candidate?.fitmentScore || 65);
 
-    // Auto-load enhancements (simulating backend data)
-    const mockEnhancements: Enhancement[] = [
-      {
-        id: '1',
-        section: 'github',
-        type: 'add',
-        enhanced: 'github.com/janhavi-dev',
-        reason: 'Adding GitHub profile to showcase coding projects and contributions',
-        status: 'pending'
-      },
-      {
-        id: '2',
-        section: 'summary',
-        type: 'improve',
-        original: resumeData?.summary,
-        enhanced: 'Passionate Computer Science student specializing in full-stack web development with hands-on experience in Java, React, and SQL. Proven track record of building scalable applications and delivering user-centric solutions.',
-        reason: 'Enhanced to highlight specific technologies and demonstrate impact',
-        status: 'pending'
-      },
-      {
-        id: '3',
-        section: 'skills',
-        type: 'add',
-        enhanced: 'Git',
-        reason: 'Adding version control skill essential for software development roles',
-        status: 'pending'
-      },
-      {
-        id: '4',
-        section: 'experience',
-        type: 'improve',
-        original: 'Developed a Blood Bank Management System using Java and MySQL',
-        enhanced: 'Architected and developed a comprehensive Blood Bank Management System using Java and MySQL, serving 500+ daily users with 99.9% uptime and reducing manual processing time by 60%',
-        reason: 'Added quantifiable metrics and impact to demonstrate value',
-        status: 'pending'
+    // Generate personalized enhancements based on candidate's specific resume
+    const generatePersonalizedEnhancements = (resume: any, candidateId: string): Enhancement[] => {
+      const enhancements: Enhancement[] = [];
+      let enhancementId = 1;
+
+      // Personalized enhancements based on candidate ID and resume content
+      switch (candidateId) {
+        case '1': // Janhavi Sharma - missing GitHub, has Java/React/SQL
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'github',
+            type: 'add',
+            enhanced: 'github.com/janhavi-dev',
+            reason: 'Adding GitHub profile to showcase your Blood Bank Management System and E-commerce projects',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'summary',
+            type: 'improve',
+            original: resume.summary,
+            enhanced: 'Computer Science student with proven expertise in Java backend development and React frontend, demonstrated through successful Blood Bank Management System serving real users. Strong foundation in SQL database design and responsive web development.',
+            reason: 'Highlighting your specific technical stack (Java, React, SQL) and real project impact',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'skills',
+            type: 'add',
+            enhanced: 'Git',
+            reason: 'Essential version control skill missing from your current skillset',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'experience',
+            type: 'improve',
+            original: 'Developed a Blood Bank Management System using Java and MySQL',
+            enhanced: 'Architected and developed a comprehensive Blood Bank Management System using Java and MySQL, implementing secure user authentication, inventory tracking, and donor management features with responsive UI design',
+            reason: 'Adding technical depth and specific features to showcase your Java and database skills',
+            status: 'pending'
+          });
+          break;
+
+        case '2': // Aarya Ranpise - has Python/Django, missing React
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'summary',
+            type: 'improve',
+            original: resume.summary,
+            enhanced: 'Computer Science student specializing in Python web development with Django framework expertise. Experienced in building scalable web applications with strong frontend integration skills using HTML, CSS, and JavaScript.',
+            reason: 'Emphasizing your Python/Django specialization and web development focus',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'skills',
+            type: 'add',
+            enhanced: 'React',
+            reason: 'Adding React to complement your strong backend skills for full-stack development',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'experience',
+            type: 'improve',
+            original: 'Built web applications using Python and Django framework',
+            enhanced: 'Developed robust web applications using Python and Django framework, implementing RESTful APIs, user authentication systems, and database optimization for improved performance',
+            reason: 'Adding technical specifics about your Django development experience',
+            status: 'pending'
+          });
+          break;
+
+        case '3': // Priya Patel - has Python/Django, missing React
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'summary',
+            type: 'improve',
+            original: resume.summary,
+            enhanced: 'Information Technology student with strong foundation in Python web development and Django framework. Demonstrated ability to create responsive web interfaces and manage complex web application architectures.',
+            reason: 'Highlighting your IT background and Python/Django expertise',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'skills',
+            type: 'add',
+            enhanced: 'React',
+            reason: 'Adding React framework to enhance your frontend capabilities alongside Python backend',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'projects',
+            type: 'improve',
+            original: 'Library Management System - Python Django application',
+            enhanced: 'Library Management System - Full-stack Python Django application with user authentication, book inventory management, search functionality, and automated fine calculation system',
+            reason: 'Adding specific features to showcase your Django project complexity',
+            status: 'pending'
+          });
+          break;
+
+        case '4': // Rahul Singh - has Node.js/MongoDB, missing SQL
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'github',
+            type: 'add',
+            enhanced: 'github.com/rahul-dev',
+            reason: 'Adding GitHub profile to showcase your Node.js and real-time chat application projects',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'summary',
+            type: 'improve',
+            original: resume.summary,
+            enhanced: 'Computer Applications student specializing in JavaScript full-stack development with Node.js and MongoDB expertise. Proven experience in building real-time applications and RESTful API development.',
+            reason: 'Emphasizing your JavaScript/Node.js specialization and real-time development skills',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'skills',
+            type: 'add',
+            enhanced: 'SQL',
+            reason: 'Adding SQL database skills to complement your MongoDB NoSQL experience',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'experience',
+            type: 'improve',
+            original: 'Developed REST APIs using Node.js and Express',
+            enhanced: 'Architected and developed scalable REST APIs using Node.js and Express, implementing JWT authentication, data validation, error handling, and MongoDB integration for high-performance web applications',
+            reason: 'Adding technical depth about your API development and backend architecture skills',
+            status: 'pending'
+          });
+          break;
+
+        case '5': // Anita Desai - has React/JavaScript, missing backend
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'summary',
+            type: 'improve',
+            original: resume.summary,
+            enhanced: 'Computer Science student with specialized expertise in React frontend development and modern JavaScript. Strong focus on creating intuitive user interfaces and responsive web applications with excellent design principles.',
+            reason: 'Highlighting your React specialization and frontend development focus',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'skills',
+            type: 'add',
+            enhanced: 'Node.js',
+            reason: 'Adding Node.js backend skills to complement your strong React frontend expertise',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'projects',
+            type: 'improve',
+            original: 'Weather App - React application with API integration',
+            enhanced: 'Weather App - Dynamic React application featuring real-time weather data integration, responsive design, location-based services, and interactive data visualization with modern UI/UX principles',
+            reason: 'Adding technical details about your React project features and API integration skills',
+            status: 'pending'
+          });
+          break;
+
+        case '6': // Vikram Kumar - has Node.js/MongoDB, missing SQL
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'github',
+            type: 'add',
+            enhanced: 'github.com/vikram-dev',
+            reason: 'Adding GitHub profile to showcase your Node.js chat application and e-commerce projects',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'summary',
+            type: 'improve',
+            original: resume.summary,
+            enhanced: 'Computer Applications student with strong expertise in JavaScript backend development using Node.js and MongoDB. Demonstrated experience in building real-time applications and full-stack e-commerce solutions.',
+            reason: 'Emphasizing your Node.js backend specialization and full-stack development experience',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'skills',
+            type: 'add',
+            enhanced: 'SQL',
+            reason: 'Adding SQL database skills to broaden your database expertise beyond MongoDB',
+            status: 'pending'
+          });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'achievements',
+            type: 'improve',
+            original: 'Best Project Award in Web Development Hackwithme - 2024',
+            enhanced: 'Best Project Award in Web Development Hackwithme - 2024 for innovative real-time chat application built with Node.js, Socket.io, and MongoDB',
+            reason: 'Adding technical context to your hackathon achievement to showcase specific skills',
+            status: 'pending'
+          });
+          break;
+
+        default:
+          // Fallback generic enhancements
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'summary',
+            type: 'improve',
+            original: resume.summary,
+            enhanced: 'Passionate Computer Science student with hands-on experience in software development and modern web technologies.',
+            reason: 'Enhanced professional summary to better highlight technical focus',
+            status: 'pending'
+          });
       }
-    ];
+
+      return enhancements;
+    };
+
+    const mockEnhancements = generatePersonalizedEnhancements(resumeData, candidate?.id || '1');
 
     setEnhancements(mockEnhancements);
   }, [candidate]);
@@ -230,7 +415,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
   const calculateFitmentScore = () => {
     const baseScore = candidate?.fitmentScore || 65;
     const acceptedEnhancements = enhancements.filter(e => e.status === 'accepted').length;
-    return Math.min(95, baseScore + (acceptedEnhancements * 7));
+    return Math.min(95, baseScore + (acceptedEnhancements * 3));
   };
 
   const updateFitmentScore = () => {
@@ -480,10 +665,23 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
               <p className="text-gray-600">AI-powered resume optimization for better job fitment</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <div className="text-sm text-gray-600">Current Fitment Score</div>
-              <div className="text-2xl font-bold text-purple-600">{currentFitmentScore}%</div>
+          <div className="flex items-center space-x-6">
+            <div className="text-right min-w-[200px]">
+              <div className="text-sm text-gray-600 mb-1">Current Fitment Score</div>
+              <div className="text-2xl font-bold text-purple-600 mb-2">{currentFitmentScore}%</div>
+              {/* Progress Bar */}
+              <div className="w-48 bg-gray-200 rounded-full h-3 relative overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${currentFitmentScore}%` }}
+                ></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-pulse"></div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>0%</span>
+                <span>50%</span>
+                <span>100%</span>
+              </div>
             </div>
             <button
               onClick={onClose}

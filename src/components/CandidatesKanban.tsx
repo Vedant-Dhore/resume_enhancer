@@ -76,7 +76,28 @@ const CandidatesKanban: React.FC = () => {
     if (enhancedResume) {
       localStorage.setItem(`enhanced_resume_${candidateId}`, JSON.stringify(enhancedResume));
     }
+    
+    // Save the enhancement progress for real-time updates
+    localStorage.setItem(`fitment_progress_${candidateId}`, JSON.stringify({
+      currentScore: newScore,
+      timestamp: Date.now()
+    }));
+    
     console.log(`Updated ${candidateId} fitment score to ${newScore}%`);
+  };
+
+  // Function to get current fitment score (including any in-progress enhancements)
+  const getCurrentFitmentScore = (candidate: Candidate) => {
+    const savedProgress = localStorage.getItem(`fitment_progress_${candidate.id}`);
+    if (savedProgress) {
+      try {
+        const { currentScore } = JSON.parse(savedProgress);
+        return currentScore;
+      } catch (error) {
+        return candidate.fitmentScore;
+      }
+    }
+    return candidate.fitmentScore;
   };
 
   const Column: React.FC<{ 
@@ -118,9 +139,18 @@ const CandidatesKanban: React.FC = () => {
                 <div>
                   <h4 className="font-medium text-gray-900">{candidate.name}</h4>
                   <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-sm font-medium text-green-600">
-                      {candidate.fitmentScore}% match
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-green-600">
+                        {getCurrentFitmentScore(candidate)}% match
+                      </span>
+                      {/* Mini progress bar */}
+                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${getCurrentFitmentScore(candidate)}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
