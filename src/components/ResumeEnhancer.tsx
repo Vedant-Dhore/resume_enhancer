@@ -40,6 +40,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
   const [enhancedResume, setEnhancedResume] = useState<any>(null);
   const [enhancements, setEnhancements] = useState<Enhancement[]>([]);
   const [currentFitmentScore, setCurrentFitmentScore] = useState(0);
+  const [missingSections, setMissingSections] = useState<{[key: string]: any}>({});
 
   // Get resume data for the candidate
   const getResumeData = () => {
@@ -186,6 +187,15 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     setOriginalResume(resumeData);
     setEnhancedResume({ ...resumeData });
     setCurrentFitmentScore(candidate?.fitmentScore || 65);
+    
+    // Initialize missing sections
+    const sections = {
+      certifications: { items: [], links: [] },
+      achievements: { items: [] },
+      researchPapers: { items: [], links: [] },
+      volunteering: { items: [] }
+    };
+    setMissingSections(sections);
 
     // Generate personalized enhancements based on candidate's specific resume
     const generatePersonalizedEnhancements = (resume: any, candidateId: string): Enhancement[] => {
@@ -390,6 +400,15 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             reason: 'Adding technical context to your hackathon achievement to showcase specific skills',
             status: 'pending'
           });
+          enhancements.push({
+            id: String(enhancementId++),
+            section: 'projects',
+            type: 'improve',
+            original: 'Chat Application - Real-time messaging using Node.js and Socket.io',
+            enhanced: 'Chat Application - Real-time messaging platform built with Node.js, Socket.io, and MongoDB featuring user authentication, private/group chats, message history, and responsive design',
+            reason: 'Adding technical details about your real-time chat application features',
+            status: 'pending'
+          });
           break;
 
         default:
@@ -532,6 +551,45 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     );
   };
 
+  // Handle missing section updates
+  const updateMissingSection = (section: string, index: number, field: string, value: string) => {
+    setMissingSections(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: prev[section][field].map((item: any, i: number) => 
+          i === index ? value : item
+        )
+      }
+    }));
+  };
+
+  const addMissingSectionItem = (section: string) => {
+    setMissingSections(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        items: [...prev[section].items, ''],
+        ...(section === 'certifications' || section === 'researchPapers' ? {
+          links: [...prev[section].links, '']
+        } : {})
+      }
+    }));
+  };
+
+  const removeMissingSectionItem = (section: string, index: number) => {
+    setMissingSections(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        items: prev[section].items.filter((_: any, i: number) => i !== index),
+        ...(section === 'certifications' || section === 'researchPapers' ? {
+          links: prev[section].links.filter((_: any, i: number) => i !== index)
+        } : {})
+      }
+    }));
+  };
+
   const applyAcceptedEnhancements = () => {
     const updatedResume = { ...originalResume };
     
@@ -559,6 +617,14 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             }
             break;
         }
+      }
+    });
+
+    // Apply missing sections
+    Object.keys(missingSections).forEach(section => {
+      const sectionData = missingSections[section];
+      if (sectionData.items.some((item: string) => item.trim())) {
+        updatedResume[section] = sectionData;
       }
     });
 
@@ -975,6 +1041,141 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                       {renderEnhancementInline('projects', index, project)}
                     </div>
                   ))}
+                  
+                  {/* Project Enhancement with Link Input */}
+                  {enhancements
+                    .filter(e => e.section === 'projects' && e.type === 'improve')
+                    .map(enhancement => {
+                      const projectIndex = enhancedResume.projects.findIndex((p: string) => p === enhancement.original);
+                      if (projectIndex === -1) return null;
+                      
+                      return (
+                        <div key={enhancement.id} className="mt-4">
+                          <div className={`border rounded-lg p-4 ${
+                            enhancement.status === 'accepted' ? 'bg-green-50 border-green-200' :
+                            enhancement.status === 'rejected' ? 'bg-gray-50 border-gray-300' :
+                            'bg-blue-50 border-blue-200'
+                          }`}>
+                            <div className={`text-sm font-medium mb-2 ${
+                              enhancement.status === 'accepted' ? 'text-green-900' :
+                              enhancement.status === 'rejected' ? 'text-gray-600' :
+                              'text-blue-900'
+                            }`}>
+                              🔧 Suggested Project Enhancement:
+                              {enhancement.status === 'accepted' && ' ✅ Accepted'}
+                              {enhancement.status === 'rejected' && ' ❌ Rejected'}
+                            </div>
+                            
+                            {enhancement.isEditing ? (
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Enhanced Description:
+                                  </label>
+                                  <textarea
+                                    value={enhancement.editValue || enhancement.enhanced}
+                                    onChange={(e) => updateEditValue(enhancement.id, e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                                    rows={3}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Project Link (GitHub/Live Demo):
+                                  </label>
+                                  <input
+                                    type="url"
+                                    placeholder="https://github.com/username/project or https://project-demo.com"
+                                    className="w-full p-2 border border-gray-300 rounded text-sm"
+                                  />
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => saveEdit(enhancement.id)}
+                                    className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                                  >
+                                    <Save className="w-3 h-3" />
+                                    <span>Save Edit</span>
+                                  </button>
+                                  <button
+                                    onClick={() => setEnhancements(prev => prev.map(e => 
+                                      e.id === enhancement.id ? { ...e, isEditing: false } : e
+                                    ))}
+                                    className="text-xs text-gray-600 hover:text-gray-800"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div className={`text-sm p-3 rounded border bg-white mb-2 ${
+                                  enhancement.status === 'rejected' ? 'line-through text-gray-500' : 'text-gray-800'
+                                }`}>
+                                  {enhancement.enhanced}
+                                </div>
+                                {enhancement.status === 'accepted' && (
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                                      Project Link (GitHub/Live Demo):
+                                    </label>
+                                    <input
+                                      type="url"
+                                      placeholder="https://github.com/username/project or https://project-demo.com"
+                                      className="w-full p-2 border border-gray-300 rounded text-sm mb-2"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            <div className={`text-xs mt-2 italic ${
+                              enhancement.status === 'rejected' ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              💡 {enhancement.reason}
+                            </div>
+                            
+                            <div className="flex items-center space-x-2 mt-3">
+                              {enhancement.status === 'pending' && !enhancement.isEditing && (
+                                <>
+                                  <button
+                                    onClick={() => acceptEnhancement(enhancement.id)}
+                                    className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                    <span>Accept</span>
+                                  </button>
+                                  <button
+                                    onClick={() => rejectEnhancement(enhancement.id)}
+                                    className="flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors"
+                                  >
+                                    <XCircle className="w-3 h-3" />
+                                    <span>Reject</span>
+                                  </button>
+                                  <button
+                                    onClick={() => startEditing(enhancement.id)}
+                                    className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors"
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                    <span>Edit</span>
+                                  </button>
+                                </>
+                              )}
+                              
+                              {(enhancement.status === 'accepted' || enhancement.status === 'rejected') && (
+                                <button
+                                  onClick={() => undoEnhancement(enhancement.id)}
+                                  className="flex items-center space-x-1 bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors"
+                                >
+                                  <Undo className="w-3 h-3" />
+                                  <span>Undo</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
 
@@ -1112,6 +1313,106 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                   ))}
                 </div>
               </div>
+
+              {/* Missing Sections */}
+              {Object.keys(missingSections).map(sectionKey => {
+                const sectionData = missingSections[sectionKey];
+                const sectionTitles = {
+                  certifications: 'Certifications',
+                  achievements: 'Additional Achievements', 
+                  researchPapers: 'Research Papers',
+                  volunteering: 'Volunteering Experience'
+                };
+                const sectionIcons = {
+                  certifications: Trophy,
+                  achievements: Trophy,
+                  researchPapers: FileText,
+                  volunteering: User
+                };
+                
+                const SectionIcon = sectionIcons[sectionKey as keyof typeof sectionIcons];
+                const hasContent = sectionData.items.some((item: string) => item.trim());
+                
+                if (!hasContent && sectionData.items.length === 0) return null;
+                
+                return (
+                  <div key={sectionKey}>
+                    <div className="flex items-center space-x-2 mb-3">
+                      <SectionIcon className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {sectionTitles[sectionKey as keyof typeof sectionTitles]}
+                      </h3>
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        New Section
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {sectionData.items.map((item: string, index: number) => (
+                        <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {sectionKey === 'certifications' ? 'Certification Name & Details:' :
+                                 sectionKey === 'researchPapers' ? 'Research Paper Title & Details:' :
+                                 sectionKey === 'achievements' ? 'Achievement Details:' :
+                                 'Volunteering Experience:'}
+                              </label>
+                              <textarea
+                                value={item}
+                                onChange={(e) => updateMissingSection(sectionKey, index, 'items', e.target.value)}
+                                placeholder={
+                                  sectionKey === 'certifications' ? 'e.g., AWS Certified Developer - Associate (2023)' :
+                                  sectionKey === 'researchPapers' ? 'e.g., "Machine Learning in Healthcare" - Published in IEEE Journal (2023)' :
+                                  sectionKey === 'achievements' ? 'e.g., Winner of National Coding Competition 2023' :
+                                  'e.g., Volunteer at Local NGO - Teaching programming to underprivileged children (2022-2023)'
+                                }
+                                className="w-full p-3 border border-gray-300 rounded-lg text-sm resize-none"
+                                rows={2}
+                              />
+                            </div>
+                            
+                            {(sectionKey === 'certifications' || sectionKey === 'researchPapers') && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  {sectionKey === 'certifications' ? 'Certification Link:' : 'Research Paper Link:'}
+                                </label>
+                                <input
+                                  type="url"
+                                  value={sectionData.links[index] || ''}
+                                  onChange={(e) => updateMissingSection(sectionKey, index, 'links', e.target.value)}
+                                  placeholder={
+                                    sectionKey === 'certifications' ? 
+                                    'https://www.credly.com/badges/your-certification' :
+                                    'https://ieeexplore.ieee.org/document/your-paper'
+                                  }
+                                  className="w-full p-3 border border-gray-300 rounded-lg text-sm"
+                                />
+                              </div>
+                            )}
+                            
+                            <div className="flex justify-end">
+                              <button
+                                onClick={() => removeMissingSectionItem(sectionKey, index)}
+                                className="text-red-600 hover:text-red-800 text-sm"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <button
+                        onClick={() => addMissingSectionItem(sectionKey)}
+                        className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-600 hover:border-gray-400 hover:text-gray-800 transition-colors"
+                      >
+                        + Add {sectionTitles[sectionKey as keyof typeof sectionTitles].slice(0, -1)}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
