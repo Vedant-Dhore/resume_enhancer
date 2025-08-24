@@ -32,6 +32,7 @@ interface Enhancement {
   status: 'pending' | 'accepted' | 'rejected';
   isEditing?: boolean;
   editValue?: string;
+  skillSuggestions?: string[]; // For skills section with multiple suggestions
 }
 
 const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onClose }) => {
@@ -215,8 +216,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             id: String(enhancementId++),
             section: 'skills',
             type: 'add',
-            enhanced: 'Git',
-            reason: 'Essential version control skill missing from your current skillset',
+            enhanced: 'Additional Skills',
+            reason: 'Essential skills missing from your current skillset for the internship role',
             status: 'pending'
           });
           enhancements.push({
@@ -244,8 +245,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             id: String(enhancementId++),
             section: 'skills',
             type: 'add',
-            enhanced: 'React',
-            reason: 'Adding React to complement your strong backend skills for full-stack development',
+            enhanced: 'Additional Skills',
+            reason: 'Frontend framework skills to complement your strong backend expertise',
             status: 'pending'
           });
           enhancements.push({
@@ -273,8 +274,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             id: String(enhancementId++),
             section: 'skills',
             type: 'add',
-            enhanced: 'React',
-            reason: 'Adding React framework to enhance your frontend capabilities alongside Python backend',
+            enhanced: 'Additional Skills',
+            reason: 'Modern frontend framework to enhance your full-stack capabilities',
             status: 'pending'
           });
           enhancements.push({
@@ -310,8 +311,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             id: String(enhancementId++),
             section: 'skills',
             type: 'add',
-            enhanced: 'SQL',
-            reason: 'Adding SQL database skills to complement your MongoDB NoSQL experience',
+            enhanced: 'Additional Skills',
+            reason: 'Relational database skills to complement your NoSQL experience',
             status: 'pending'
           });
           enhancements.push({
@@ -339,8 +340,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             id: String(enhancementId++),
             section: 'skills',
             type: 'add',
-            enhanced: 'Node.js',
-            reason: 'Adding Node.js backend skills to complement your strong React frontend expertise',
+            enhanced: 'Additional Skills',
+            reason: 'Backend development skills to complement your strong frontend expertise',
             status: 'pending'
           });
           enhancements.push({
@@ -376,8 +377,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             id: String(enhancementId++),
             section: 'skills',
             type: 'add',
-            enhanced: 'SQL',
-            reason: 'Adding SQL database skills to broaden your database expertise beyond MongoDB',
+            enhanced: 'Additional Skills',
+            reason: 'Relational database skills to broaden your database expertise',
             status: 'pending'
           });
           enhancements.push({
@@ -427,7 +428,11 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     setEnhancements(prev => prev.map(e => 
       e.id === enhancementId ? { ...e, status: 'accepted' as const } : e
     ));
-    setCurrentFitmentScore(prev => Math.min(95, prev + 3));
+    // Don't update score here for skills - handled by individual skill toggles
+    const enhancement = enhancements.find(e => e.id === enhancementId);
+    if (enhancement?.section !== 'skills') {
+      setCurrentFitmentScore(prev => Math.min(95, prev + 3));
+    }
   };
 
   const rejectEnhancement = (enhancementId: string) => {
@@ -438,7 +443,7 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
 
   const undoEnhancement = (enhancementId: string) => {
     const enhancement = enhancements.find(e => e.id === enhancementId);
-    if (enhancement?.status === 'accepted') {
+    if (enhancement?.status === 'accepted' && enhancement.section !== 'skills') {
       setCurrentFitmentScore(prev => Math.max(candidate?.fitmentScore || 65, prev - 3));
     }
     setEnhancements(prev => prev.map(e => 
@@ -485,6 +490,48 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
     setCurrentFitmentScore(candidate?.fitmentScore || 65);
   };
 
+  // Handle individual skill selection
+  const toggleSkill = (skill: string) => {
+    const currentSkills = enhancedResume.skills || [];
+    const isSkillSelected = currentSkills.includes(skill);
+    
+    if (isSkillSelected) {
+      // Remove skill
+      setEnhancedResume(prev => ({
+        ...prev,
+        skills: prev.skills.filter(s => s !== skill)
+      }));
+      setCurrentFitmentScore(prev => Math.max(candidate?.fitmentScore || 65, prev - 1));
+    } else {
+      // Add skill
+      setEnhancedResume(prev => ({
+        ...prev,
+        skills: [...prev.skills, skill]
+      }));
+      setCurrentFitmentScore(prev => Math.min(95, prev + 1));
+    }
+  };
+
+  // Get suggested skills that are not in original resume
+  const getSuggestedSkills = (candidateId: string, originalSkills: string[]): string[] => {
+    const skillSuggestions: { [key: string]: string[] } = {
+      '1': ['Git', 'Spring Boot', 'REST APIs'], // Janhavi - has Java, React, SQL
+      '2': ['React', 'SQL', 'Git'], // Aarya - has Python, Django, HTML, CSS
+      '3': ['React', 'SQL', 'Git'], // Priya - has Python, Django, HTML, CSS
+      '4': ['SQL', 'React', 'Git'], // Rahul - has JavaScript, Node.js, MongoDB
+      '5': ['Node.js', 'SQL', 'Git'], // Anita - has React, JavaScript, CSS, HTML
+      '6': ['SQL', 'React', 'Git'] // Vikram - has JavaScript, Node.js, MongoDB
+    };
+    
+    const suggestions = skillSuggestions[candidateId] || ['React', 'SQL', 'Git'];
+    // Filter out skills that are already in the original resume
+    return suggestions.filter(skill => 
+      !originalSkills.some(originalSkill => 
+        originalSkill.toLowerCase() === skill.toLowerCase()
+      )
+    );
+  };
+
   const applyAcceptedEnhancements = () => {
     const updatedResume = { ...originalResume };
     
@@ -499,7 +546,8 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
             break;
           case 'skills':
             if (enhancement.type === 'add') {
-              updatedResume.skills = [...updatedResume.skills, enhancement.enhanced];
+              // For skills, use the enhanced resume's current skills (which include toggled skills)
+              updatedResume.skills = enhancedResume.skills;
             }
             break;
           case 'experience':
@@ -938,15 +986,115 @@ const ResumeEnhancer: React.FC<ResumeEnhancerProps> = ({ candidate, onSave, onCl
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {enhancedResume.skills.map((skill: string, index: number) => (
-                    <div key={index} className="flex flex-col">
-                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                    <span 
+                      key={index} 
+                      className={`px-3 py-1 rounded-full text-sm ${
+                        originalResume.skills.includes(skill)
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800 border border-green-300'
+                      }`}
+                    >
                         {skill}
-                      </span>
-                      {renderEnhancementInline('skills', index, skill)}
-                    </div>
+                      {!originalResume.skills.includes(skill) && (
+                        <span className="ml-1 text-xs">✨</span>
+                      )}
+                    </span>
                   ))}
                 </div>
-                {renderEnhancementInline('skills')}
+                
+                {/* Skills Enhancement Section */}
+                {(() => {
+                  const skillsEnhancement = enhancements.find(e => e.section === 'skills');
+                  if (!skillsEnhancement) return null;
+                  
+                  const suggestedSkills = getSuggestedSkills(candidate?.id || '1', originalResume.skills);
+                  
+                  if (suggestedSkills.length === 0) return null;
+                  
+                  return (
+                    <div className="mt-4">
+                      <div className={`border rounded-lg p-4 ${
+                        skillsEnhancement.status === 'accepted' ? 'bg-green-50 border-green-200' :
+                        skillsEnhancement.status === 'rejected' ? 'bg-gray-50 border-gray-300' :
+                        'bg-blue-50 border-blue-200'
+                      }`}>
+                        <div className={`text-sm font-medium mb-3 ${
+                          skillsEnhancement.status === 'accepted' ? 'text-green-900' :
+                          skillsEnhancement.status === 'rejected' ? 'text-gray-600' :
+                          'text-blue-900'
+                        }`}>
+                          ✨ Suggested Skills to Add:
+                          {skillsEnhancement.status === 'accepted' && ' ✅ Available'}
+                          {skillsEnhancement.status === 'rejected' && ' ❌ Rejected'}
+                        </div>
+                        
+                        {skillsEnhancement.status !== 'rejected' && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {suggestedSkills.map((skill, index) => {
+                              const isSelected = enhancedResume.skills.includes(skill);
+                              return (
+                                <label
+                                  key={index}
+                                  className={`flex items-center space-x-2 cursor-pointer px-3 py-2 rounded-lg border transition-all ${
+                                    isSelected
+                                      ? 'bg-green-100 border-green-300 text-green-800'
+                                      : 'bg-white border-gray-300 text-gray-700 hover:border-blue-300'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleSkill(skill)}
+                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  <span className="text-sm font-medium">{skill}</span>
+                                  {isSelected && <span className="text-xs">+1%</span>}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                        
+                        <div className={`text-xs italic mb-3 ${
+                          skillsEnhancement.status === 'rejected' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          💡 {skillsEnhancement.reason}
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          {skillsEnhancement.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => acceptEnhancement(skillsEnhancement.id)}
+                                className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors"
+                              >
+                                <Check className="w-3 h-3" />
+                                <span>Accept</span>
+                              </button>
+                              <button
+                                onClick={() => rejectEnhancement(skillsEnhancement.id)}
+                                className="flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors"
+                              >
+                                <XCircle className="w-3 h-3" />
+                                <span>Reject</span>
+                              </button>
+                            </>
+                          )}
+                          
+                          {(skillsEnhancement.status === 'accepted' || skillsEnhancement.status === 'rejected') && (
+                            <button
+                              onClick={() => undoEnhancement(skillsEnhancement.id)}
+                              className="flex items-center space-x-1 bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors"
+                            >
+                              <Undo className="w-3 h-3" />
+                              <span>Undo</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Achievements */}
